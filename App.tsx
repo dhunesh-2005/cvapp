@@ -1,5 +1,20 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Camera, Upload, RefreshCw, Zap, AlertTriangle, Eye, Volume2, VolumeX, Play, Pause, Scan } from 'lucide-react';
+import {
+  Camera,
+  Upload,
+  RefreshCw,
+  AlertTriangle,
+  Eye,
+  Mic,
+  MicOff,
+  Play,
+  Pause,
+  Scan,
+  Signal,
+  FileText,
+  MapPin,
+  Globe
+} from 'lucide-react';
 import { analyzeRoadScene } from './services/geminiService';
 import AnalysisPanel from './components/AnalysisPanel';
 import { AnalysisResult } from './types';
@@ -206,21 +221,28 @@ const App: React.FC = () => {
   const renderVisualizer = () => {
     if (mode === 'initial') {
       return (
-        <div className="h-full flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-gray-800 rounded-lg bg-gray-900/20 m-4">
-          <div className="w-20 h-20 rounded-full bg-hud-cyan/10 flex items-center justify-center mb-6 animate-pulse">
-            <Eye className="w-10 h-10 text-hud-cyan" />
+        <div className="h-full flex flex-col items-center justify-center p-8 text-center relative overflow-hidden group">
+          {/* Subtle grid background */}
+          <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="w-24 h-24 rounded-full bg-hud-primary/10 flex items-center justify-center mb-8 relative">
+              <div className="absolute inset-0 rounded-full border border-hud-primary/30 animate-pulse-slow"></div>
+              <div className="absolute inset-2 rounded-full border border-hud-primary/20 animate-ping opacity-20"></div>
+              <Eye className="w-10 h-10 text-hud-primary" />
+            </div>
+
+            <h2 className="text-2xl font-mono font-bold text-white mb-3 tracking-widest uppercase">System Standby</h2>
+            <p className="text-hud-text-dim text-sm font-mono tracking-wide">Ready: Select Input Source</p>
           </div>
-          <h2 className="text-2xl font-mono font-bold text-white mb-2">SYSTEM STANDBY</h2>
-          <p className="text-gray-400 max-w-md mb-8">Select an input source to begin autonomous road analysis and hazard detection.</p>
         </div>
       );
     }
 
     return (
       <div className="relative w-full h-full flex items-center justify-center bg-black overflow-hidden group">
-
         {/* Constrained Media Container */}
-        <div className="relative max-w-[60%] max-h-[60%] w-full h-full flex items-center justify-center rounded-xl overflow-hidden border border-gray-800 shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-black/50">
+        <div className="relative max-w-[80%] max-h-[80%] w-full h-full flex items-center justify-center rounded-xl overflow-hidden border border-hud-border shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-hud-gray/50">
           {/* Media Player */}
           {fileType === 'video' ? (
             <video
@@ -240,155 +262,178 @@ const App: React.FC = () => {
           {/* HUD Overlay (Scanning Effect) - Scoped to Media */}
           {(analyzing || isAutoScan) && (
             <div className="absolute inset-0 pointer-events-none z-10">
-              <div className="absolute top-0 left-0 w-full h-1 bg-hud-cyan/50 shadow-[0_0_15px_rgba(0,240,255,0.8)] animate-[scan_2s_linear_infinite]"></div>
-              <div className="absolute inset-0 border-[2px] border-hud-cyan/30 rounded-xl"></div>
-              <div className="absolute top-4 right-4 text-hud-cyan font-mono text-[10px] animate-pulse bg-black/50 px-2 py-1 rounded">ANALYZING FRAME DATA...</div>
+              <div className="absolute top-0 left-0 w-full h-1 bg-hud-primary/50 shadow-[0_0_15px_rgba(0,122,255,0.8)] animate-[scan_2s_linear_infinite]"></div>
+              <div className="absolute inset-0 border-[2px] border-hud-primary/30 rounded-xl"></div>
+              <div className="absolute top-4 right-4 text-hud-primary font-mono text-[10px] animate-pulse bg-black/50 px-2 py-1 rounded border border-hud-primary/30">ANALYZING FRAME DATA...</div>
             </div>
           )}
         </div>
 
         {/* HUD Grid (Background) */}
-        <div className="absolute inset-0 pointer-events-none opacity-20 bg-[linear-gradient(rgba(0,240,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,240,255,0.1)_1px,transparent_1px)] bg-[size:40px_40px] -z-10"></div>
+        <div className="absolute inset-0 pointer-events-none opacity-20 bg-[linear-gradient(rgba(0,122,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,122,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px] -z-10"></div>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans flex flex-col md:flex-row overflow-hidden">
-      {/* Decorative Scan Line */}
-      <div className="scan-line"></div>
+    <div className="h-screen bg-hud-black text-hud-text font-sans flex flex-col overflow-hidden selection:bg-hud-primary/30">
 
-      {/* LEFT: Main Visual Area */}
-      <div className="flex-1 flex flex-col relative border-r border-hud-border">
-        {/* Header */}
-        <div className="absolute top-0 left-0 w-full p-4 z-40 flex justify-between items-center bg-gradient-to-b from-black/90 via-black/50 to-transparent">
-          <div className="flex items-center space-x-3">
-            <Eye className="text-hud-cyan w-6 h-6" />
-            <h1 className="font-mono font-bold text-xl tracking-wider text-hud-cyan drop-shadow-[0_0_5px_rgba(0,240,255,0.5)]">
-              Nex<span className="text-white">Vue</span>
+      {/* 1. TOP BAR */}
+      <header className="h-16 border-b border-hud-border bg-hud-black/95 backdrop-blur-md flex items-center justify-between px-6 z-50 relative shrink-0">
+        {/* Logo */}
+        <div className="flex items-center gap-3">
+          <Eye className="w-6 h-6 text-hud-primary drop-shadow-[0_0_8px_rgba(0,122,255,0.5)]" />
+          <div className="flex flex-col">
+            <h1 className="text-lg font-bold tracking-wider leading-none">
+              <span className="text-white">Nex</span><span className="text-hud-primary">Vue</span>
             </h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-hud-border text-gray-400 border border-gray-700">
-              V3
-            </span>
+            <span className="text-[9px] font-mono text-hud-text-dim tracking-[0.2em]">HAZARD DETECTION V3</span>
           </div>
+        </div>
 
-          {/* Centered Input & Action Controls */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-3">
-            {mode === 'initial' ? (
-              <>
+        {/* Center Action Buttons */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-4">
+          {mode === 'initial' ? (
+            <>
+              <button
+                onClick={startCamera}
+                className="group flex items-center gap-2 px-5 py-2 bg-hud-gray rounded-full border border-hud-border transition-all hover:border-hud-primary hover:shadow-[0_0_15px_rgba(0,122,255,0.2)]"
+              >
+                <Camera className="w-4 h-4 text-hud-text-dim group-hover:text-hud-primary transition-colors" />
+                <span className="text-xs font-medium tracking-wide">LIVE CAMERA</span>
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="group flex items-center gap-2 px-5 py-2 bg-hud-gray rounded-full border border-hud-border transition-all hover:border-hud-primary hover:shadow-[0_0_15px_rgba(0,122,255,0.2)]"
+              >
+                <Upload className="w-4 h-4 text-hud-text-dim group-hover:text-hud-primary transition-colors" />
+                <span className="text-xs font-medium tracking-wide">UPLOAD MEDIA</span>
+              </button>
+            </>
+          ) : (
+            <div className="flex items-center gap-2 bg-hud-gray/50 rounded-full p-1 border border-hud-border">
+              {/* Mode Controls */}
+              {!isAutoScan && (
                 <button
-                  onClick={startCamera}
-                  className="flex items-center gap-2 px-4 py-2 rounded border transition-all group bg-black/40 border-gray-700 text-gray-400 hover:text-hud-cyan hover:border-hud-cyan/50"
+                  onClick={captureAndAnalyze}
+                  disabled={analyzing}
+                  className="flex items-center gap-2 px-4 py-1.5 bg-hud-primary text-black font-bold text-xs rounded-full hover:bg-white transition-all disabled:opacity-50"
                 >
-                  <Camera className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span className="font-mono text-xs sm:text-sm tracking-wide">LIVE CAMERA</span>
+                  <Scan className={`w-3 h-3 ${analyzing ? 'animate-spin' : ''}`} />
+                  SCAN
                 </button>
+              )}
 
+              {fileType === 'video' && (
                 <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2 rounded border transition-all group bg-black/40 border-gray-700 text-gray-400 hover:text-white hover:border-white"
+                  onClick={() => setIsAutoScan(!isAutoScan)}
+                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${isAutoScan
+                    ? 'bg-hud-danger text-white animate-pulse'
+                    : 'bg-transparent text-hud-primary hover:bg-hud-primary/10'
+                    }`}
                 >
-                  <Upload className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span className="font-mono text-xs sm:text-sm tracking-wide">UPLOAD MEDIA</span>
+                  {isAutoScan ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                  {isAutoScan ? 'STOP' : 'AUTO'}
                 </button>
-              </>
-            ) : (
-              <>
-                {!isAutoScan && (
-                  <button
-                    onClick={captureAndAnalyze}
-                    disabled={analyzing}
-                    className="flex items-center gap-2 px-4 py-2 bg-hud-cyan text-black font-bold font-mono text-xs sm:text-sm rounded hover:bg-white transition-all disabled:opacity-50 shadow-[0_0_15px_rgba(0,240,255,0.4)]"
-                  >
-                    <Scan className={`w-4 h-4 ${analyzing ? 'animate-spin' : ''}`} />
-                    {analyzing ? 'SCANNING' : 'SCAN'}
-                  </button>
-                )}
+              )}
 
-                {fileType === 'video' && (
-                  <button
-                    onClick={() => setIsAutoScan(!isAutoScan)}
-                    className={`flex items-center gap-2 px-4 py-2 border font-mono text-xs sm:text-sm rounded transition-all ${isAutoScan
-                      ? 'bg-hud-red/20 border-hud-red text-hud-red animate-pulse'
-                      : 'bg-black/40 border-hud-cyan/50 text-hud-cyan hover:bg-hud-cyan/10'
-                      }`}
-                  >
-                    {isAutoScan ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    {isAutoScan ? 'STOP' : 'AUTO'}
-                  </button>
-                )}
+              <button
+                onClick={reset}
+                className="p-2 text-hud-text-dim hover:text-white transition-colors rounded-full hover:bg-white/5"
+                title="Reset"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+        </div>
 
-                <button
-                  onClick={reset}
-                  className="flex items-center gap-2 px-4 py-2 bg-black/40 border border-gray-700 text-gray-400 font-mono text-xs sm:text-sm rounded hover:text-white hover:border-white transition-all"
-                  title="Reset Mode"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  <span className="hidden sm:inline">RESET</span>
-                </button>
-              </>
+        {/* Right Controls */}
+        <div className="flex items-center gap-6">
+          {/* Voice Toggle */}
+          <button
+            onClick={() => {
+              const newState = !isVoiceEnabled;
+              setIsVoiceEnabled(newState);
+              if (!newState && window.speechSynthesis) window.speechSynthesis.cancel();
+            }}
+            className="text-hud-text-dim hover:text-white transition-colors relative"
+            title={isVoiceEnabled ? "Mute Voice" : "Enable Voice"}
+          >
+            {isVoiceEnabled ? <Mic className="w-5 h-5 text-hud-primary" /> : <MicOff className="w-5 h-5 opacity-50 relative" />}
+            {!isVoiceEnabled && (
+              <div className="absolute top-1/2 left-0 w-full h-[1.5px] bg-red-500 -rotate-45 transform -translate-y-1/2"></div>
             )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*,video/*"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </div>
+          </button>
 
-          <div className="flex items-center gap-4">
-            {/* Voice Toggle */}
-            <button
-              onClick={() => {
-                const newState = !isVoiceEnabled;
-                setIsVoiceEnabled(newState);
-                if (!newState && window.speechSynthesis) {
-                  window.speechSynthesis.cancel();
-                }
-              }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${isVoiceEnabled
-                ? 'bg-hud-cyan/20 border-hud-cyan text-hud-cyan shadow-[0_0_10px_rgba(0,240,255,0.3)]'
-                : 'bg-black/40 border-gray-700 text-gray-500 hover:border-gray-500'
-                }`}
-            >
-              {isVoiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-              <span className="text-xs font-mono uppercase hidden sm:inline">
-                {isVoiceEnabled ? 'Voice Active' : 'Voice Muted'}
-              </span>
-            </button>
-
-            <div className="text-[10px] font-mono text-hud-green flex items-center gap-2 hidden sm:flex">
-              <span className={`w-2 h-2 rounded-full ${analyzing || isAutoScan ? 'bg-hud-amber animate-ping' : 'bg-hud-green animate-pulse'}`}></span>
-              {analyzing ? 'PROCESSING' : 'SYSTEM ONLINE'}
+          {/* System Status */}
+          <div className="flex items-center gap-3 pl-6 border-l border-hud-border h-8">
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] uppercase font-mono tracking-wider text-hud-text-dim">Status</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-hud-success shadow-none">ONLINE</span>
             </div>
+            <div className="w-1.5 h-6 bg-hud-success rounded-[1px] shadow-[0_0_8px_rgba(0,255,157,0.6)] animate-pulse"></div>
           </div>
         </div>
+      </header>
 
-        {/* Viewport Content */}
-        <div className="flex-1 relative bg-black flex flex-col">
+      {/* 2. MAIN CONTENT AREA */}
+      <main className="flex-1 flex overflow-hidden">
+        {/* Left: Viewport */}
+        <div className="flex-1 relative flex flex-col bg-black">
           {renderVisualizer()}
+
+          {/* Debug/Canvas */}
+          <canvas ref={canvasRef} className="hidden" />
         </div>
 
-        {/* Hidden Canvas for Capture */}
-        <canvas ref={canvasRef} className="hidden" />
-      </div>
+        {/* Right: Telemetry Panel */}
+        <aside className="w-[400px] border-l border-hud-border bg-hud-dark flex flex-col relative z-20">
+          <AnalysisPanel result={result} loading={analyzing} />
 
-      {/* RIGHT: Analysis Panel */}
-      <div className="w-full md:w-[400px] h-[40vh] md:h-auto bg-hud-dark border-l border-hud-border flex flex-col relative z-20 shadow-[-10px_0_30px_rgba(0,0,0,0.5)]">
-        <AnalysisPanel result={result} loading={analyzing} />
-
-        {/* Error Notification */}
-        {error && (
-          <div className="absolute bottom-4 left-4 right-4 bg-red-950/90 border border-red-500/50 p-4 rounded backdrop-blur-sm flex items-start gap-3 animate-in slide-in-from-bottom-5 fade-in shadow-lg">
-            <AlertTriangle className="text-red-400 w-5 h-5 flex-shrink-0 mt-0.5" />
-            <div>
-              <h4 className="text-red-400 font-mono text-xs font-bold uppercase mb-1">System Error</h4>
-              <p className="text-xs text-red-200 leading-relaxed">{error}</p>
+          {/* Error Toast */}
+          {error && (
+            <div className="absolute bottom-4 left-4 right-4 bg-red-950/90 border border-hud-danger/50 p-4 rounded backdrop-blur-sm flex items-start gap-3 shadow-lg z-50">
+              <AlertTriangle className="text-hud-danger w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-hud-danger font-mono text-xs font-bold uppercase mb-1">System Alert</h4>
+                <p className="text-xs text-red-200 leading-relaxed">{error}</p>
+              </div>
             </div>
+          )}
+        </aside>
+      </main>
+
+      {/* 3. BOTTOM INFO BAR */}
+      <footer className="h-8 border-t border-hud-border bg-hud-black flex items-center justify-between px-4 text-[10px] font-mono text-hud-text-dim shrink-0 z-50 relative">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <FileText className="w-3 h-3 text-hud-primary" />
+            <span className="uppercase tracking-wider">System Logs: Nominal</span>
           </div>
-        )}
-      </div>
+          <span className="text-hud-border">|</span>
+          <div className="flex items-center gap-2">
+            <Globe className="w-3 h-3" />
+            <span>LAT: 34.0522 N  LONG: 118.2437 W</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <span>v3.0.1 Stable</span>
+          <span className="text-hud-border">|</span>
+          <div className="flex items-center gap-2 text-hud-success">
+            <Signal className="w-3 h-3" />
+            <span className="tracking-wider">5G CONNECTED</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
